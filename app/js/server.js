@@ -24,7 +24,7 @@ var readTemp = function() {
                 console.log('exec error: ' + error);
                 mqttClient.publish('rpi-temp', 'ERROR: '+error);
             } else {
-                var date = new Date().getTime();
+                var date = new Date();
                 var temp = parseFloat(stdout) / 1000;
                 mqttClient.publish('rpi-temp', date +":"+temp);
             }

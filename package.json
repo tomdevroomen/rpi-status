@@ -4,6 +4,7 @@
   "description": "RPI Status",
   "main": "index.js",
   "dependencies": {
+    "minimist": "^1.2.0",
     "mqtt": "^1.10.0"
   },
   "devDependencies": {},
