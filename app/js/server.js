@@ -1,36 +1,33 @@
-var app = require('http').createServer(handler);
-var io = require('socket.io').listen(app);
-var fs = require('fs');
-var sys = require('util');
 var exec = require('child_process').exec;
-var child;
+var mqtt = require('mqtt');
+var mqttClient = mqtt.connect('mqtt://localhost');
 
-// Listen on port 8000
-app.listen(8000);
-
-function handler(req, res) {
-    var indexHtml = __dirname + '/../index.html';
-    fs.readFile(indexHtml, function () {
-        if (err) {
-            console.log('Index not found at: '+indexHtml, err);
-            res.writeHead(500);
-            return res.end('Error loading index.html');
+mqttClient.subscribe('presence');
+mqttClient.subscribe('rpi-temp');
+mqttClient.publish('presence', 'rpi-status is alive at: ' + Date());
+mqttClient.on('message', function (topic, message) {
+    // message is Buffer 
+    console.log(message.toString());
+    
+    switch (topic) {
+        case 'presence' : {
+            console.log('Start reading temp');
+            readTemp();
         }
-        res.writeHead(200);
-        res.end(data);
-    });
-};
+    }
+});
 
-io.on('connection', function (socket) {
+var readTemp = function() {
     setInterval(function () {
-        child = exec("cat /sys/class/thermal/thermal_zone0/temp", function (error, stdout, stderr) {
+        exec("cat /sys/class/thermal/thermal_zone0/temp", function (error, stdout, stderr) {
             if (error !== null) {
                 console.log('exec error: ' + error);
+                mqttClient.publish('rpi-temp', 'ERROR: '+error);
             } else {
                 var date = new Date().getTime();
                 var temp = parseFloat(stdout) / 1000;
-                socket.emit('temperatureUpdate', date, temp);
+                mqttClient.publish('rpi-temp', date +":"+temp);
             }
         });
     }, 5000);
-});
+};
