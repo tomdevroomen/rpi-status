@@ -1,0 +1,11 @@
+### OSX ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+### IntelliJ ###
+.idea
+*.iml
+
+### NodeJS ###
+node_modules
