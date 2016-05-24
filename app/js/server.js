@@ -1,6 +1,7 @@
 var exec = require('child_process').exec;
 var mqtt = require('mqtt');
-var mqttClient = mqtt.connect('mqtt://localhost');
+var argv = require('minimist')(process.argv.slice(2));
+var mqttClient = mqtt.connect('mqtt://'+argv._[0]+'/');
 
 mqttClient.subscribe('presence');
 mqttClient.subscribe('rpi-temp');
@@ -22,11 +23,13 @@ var readTemp = function() {
         exec("cat /sys/class/thermal/thermal_zone0/temp", function (error, stdout, stderr) {
             if (error !== null) {
                 console.log('exec error: ' + error);
-                mqttClient.publish('rpi-temp', 'ERROR: '+error);
+                mqttClient.publish('rpi-temp', 
+                    JSON.stringify({'error': error}));
             } else {
                 var date = new Date();
                 var temp = parseFloat(stdout) / 1000;
-                mqttClient.publish('rpi-temp', date +":"+temp);
+                mqttClient.publish('rpi-temp', 
+                    JSON.stringify({'date' : date, 'temp' : temp}));
             }
         });
     }, 5000);
